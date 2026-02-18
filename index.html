@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Word Crumble: Mobile</title>
+    <title>Word Crumble: Mobile Fixed</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -27,7 +27,13 @@
             --ui-cyan: #00d2d3;
         }
 
-        * { user-select: none; box-sizing: border-box; touch-action: none; -webkit-tap-highlight-color: transparent; }
+        * { 
+            user-select: none; 
+            -webkit-user-select: none; /* iOS Safari */
+            box-sizing: border-box; 
+            touch-action: none; /* Critical for mobile swipe */
+            -webkit-tap-highlight-color: transparent; 
+        }
 
         body { 
             font-family: 'Nunito', sans-serif; 
@@ -45,6 +51,7 @@
             box-shadow: 0 5px 0 rgba(0,0,0,0.3), 0 5px 10px rgba(0,0,0,0.2);
             border-bottom: 4px solid rgba(0,0,0,0.2);
             transition: top 0.4s ease, left 0.4s ease, transform 0.1s;
+            touch-action: none; /* Prevents scroll on tile touch */
         }
         
         .cell:active { transform: translateY(4px); border-bottom-width: 0px; box-shadow: none; }
@@ -94,7 +101,6 @@
         }
         .stat-val { font-size: 1.2rem; font-weight: 900; color: white; }
 
-        /* DICTIONARY POP-UP (TOP) */
         #def-modal {
             width: 90%; max-width: 450px; min-height: 50px;
             background: rgba(20, 20, 30, 0.95); border: 1px solid rgba(255,255,255,0.2);
@@ -123,7 +129,7 @@
             margin-bottom: 10px; color: white; letter-spacing: 2px;
         }
 
-        #game-container { position: relative; margin: 0 auto; width: 100%; transition: width 0.3s ease; }
+        #game-container { position: relative; margin: 0 auto; width: 100%; transition: width 0.3s ease; touch-action: none; }
 
         .controls { 
             position: fixed; bottom: 20px; display: flex; gap: 10px; width: 90%; max-width: 450px; z-index: 200; 
@@ -157,7 +163,7 @@
         
         h2 { color: var(--ui-gold); margin: 0 0 20px 0; text-transform: uppercase; letter-spacing: 1px; }
         
-        /* NEW LANDING SCREEN BUTTONS */
+        /* LANDING SCREEN BUTTONS */
         .landing-btn {
             display: block; width: 100%; padding: 20px; margin-bottom: 15px;
             border-radius: 12px; border: none; font-size: 1.2rem; font-weight: 900;
@@ -249,7 +255,7 @@
             <h2>How to Play</h2>
             <div class="rule-row"><div class="rule-icon">👆</div><div class="rule-text"><b>First:</b> Find the Daily Hidden Word</div></div>
             <div class="rule-row"><div class="rule-icon">🐍</div><div class="rule-text"><b>Now:</b> Clear the grid!</div></div>
-            <div class="rule-row"><div class="rule-icon">🧱</div><div class="rule-text">Tap or swipe to select letters.</div></div>
+            <div class="rule-row"><div class="rule-icon">🧱</div><div class="rule-text">Tap or swipe to select letters</div></div>
             <div class="rule-row"><div class="rule-icon">🎒</div><div class="rule-text">A double tap submits the word for validation.</div></div>
             <button class="game-btn btn-green" style="width:100%; margin-top:10px" onclick="startGame()">Start</button>
         </div>
@@ -347,7 +353,6 @@
             return ((t ^ t >>> 14) >>> 0) / 4294967296;
         }
 
-        // --- NAVIGATION ---
         function showDev() {
             document.getElementById('landing-screen').classList.remove('visible');
             document.getElementById('setup-screen').classList.add('visible');
@@ -366,7 +371,6 @@
             };
             dictionary.add(SETTINGS.word);
 
-            // Hide Landing/Setup, Show Welcome
             document.getElementById('landing-screen').classList.remove('visible');
             document.getElementById('setup-screen').classList.remove('visible');
             document.getElementById('modal-welcome').classList.add('visible');
@@ -421,11 +425,11 @@
             gameActive = true;
             gameStartTime = Date.now();
             interval = setInterval(tick, 1000);
-            document.getElementById('game-container').onpointerdown = handleDown;
+            // Global handlers for drag support
+            document.addEventListener('pointerup', endDrag);
             document.addEventListener('pointerdown', globalTap); 
         }
 
-        // --- GRID LOGIC ---
         function createTile(r, c, data, w, h) {
             const el = document.createElement('div');
             let cls = "cell";
@@ -447,15 +451,7 @@
             el.tile = tile; grid[r][c] = tile; 
             if(tile.snake) snakeIds.push(tile);
 
-            // MOBILE SWIPE LOGIC
-            el.onpointerdown = (e) => {
-                e.preventDefault();
-                if (e.target.hasPointerCapture(e.pointerId)) {
-                    e.target.releasePointerCapture(e.pointerId);
-                }
-                handleInputStart(e, tile);
-            };
-
+            el.onpointerdown = (e) => handleInputStart(e, tile);
             document.getElementById('game-container').appendChild(el);
         }
 
@@ -509,9 +505,9 @@
             return n;
         }
 
-        // --- PLAY ---
+        // --- INPUT HANDLER (MOBILE FIX) ---
         function handleInputStart(e, tile) {
-            e.stopPropagation();
+            e.preventDefault(); // Stop default scroll
             if(!gameActive || isProcessing) return;
             
             hideDefinition();
@@ -530,11 +526,11 @@
                 tile.el.classList.add('selected');
                 updateDisplay();
                 
-                // Start drag logic
+                // Begin dragging listeners
                 isDragging = true;
-                document.addEventListener('pointermove', handleMove);
-                document.addEventListener('pointerup', endDrag);
+                document.addEventListener('pointermove', handleMove, { passive: false });
             } else {
+                // Backtrack
                 if(selected.length > 1 && selected[selected.length-2] === tile) {
                     selected.pop().el.classList.remove('selected');
                     updateDisplay();
@@ -542,24 +538,14 @@
             }
         }
 
-        function globalTap(e) {
-            if(!e.target.closest('#def-modal') && !e.target.closest('.game-btn')) hideDefinition();
-        }
-
-        function handleDown(e) {
-            if(!gameActive || isProcessing) return;
-            isDragging = true;
-            handleMove(e);
-            document.addEventListener('pointermove', handleMove);
-            document.addEventListener('pointerup', endDrag);
-        }
-
         function handleMove(e) {
             if(!isDragging) return;
+            // Robust Hit Test
             let target = document.elementFromPoint(e.clientX, e.clientY);
             if(!target) return;
             let cell = target.closest('.cell');
             if(!cell || !cell.tileData) return;
+            
             const tile = cell.tileData;
             
             if(!selected.includes(tile)) {
@@ -577,7 +563,14 @@
             }
         }
 
-        function endDrag() { isDragging = false; document.removeEventListener('pointermove', handleMove); document.removeEventListener('pointerup', endDrag); }
+        function endDrag() { 
+            isDragging = false; 
+            document.removeEventListener('pointermove', handleMove); 
+        }
+
+        function globalTap(e) {
+            if(!e.target.closest('#def-modal') && !e.target.closest('.game-btn')) hideDefinition();
+        }
 
         function updateDisplay() {
             const txt = selected.map(t => t.l).join('').toUpperCase();
@@ -697,7 +690,6 @@
             }, 350);
         }
 
-        // --- HELPERS ---
         function toggleSnake(show) { snakeIds.forEach(t => { if(t.el) show ? t.el.classList.add('snake-highlight') : t.el.classList.remove('snake-highlight'); }); }
         function updateBag() { 
             let count = grid.flat().filter(x => x !== null).length;
@@ -724,7 +716,6 @@
             document.getElementById('go-title').innerText = won ? "VICTORY!" : "TIME UP";
             document.getElementById('go-title').style.color = won ? "#2ecc71" : "#e74c3c";
             
-            // Calculate Final Score correctly
             const finalScore = won ? (totalScore + 500) : totalScore;
             document.getElementById('go-score').innerText = finalScore;
             
