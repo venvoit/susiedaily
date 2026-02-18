@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Word Crumble: Susie Edition</title>
+    <title>Word Crumble: Mobile</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -247,10 +247,10 @@
     <div id="modal-welcome" class="modal-overlay">
         <div class="modal-card">
             <h2>How to Play</h2>
-            <div class="rule-row"><div class="rule-icon">👆</div><div class="rule-text"><b>Tap to Connect:</b> Select tiles in sequence.</div></div>
-            <div class="rule-row"><div class="rule-icon">🐍</div><div class="rule-text"><b>Find the Snake:</b> The hidden word is buried in the wall.</div></div>
-            <div class="rule-row"><div class="rule-icon">🧱</div><div class="rule-text"><b>Gravity:</b> Clearing bricks makes the wall collapse.</div></div>
-            <div class="rule-row"><div class="rule-icon">🎒</div><div class="rule-text"><b>No Refills:</b> Clear every tile to win!</div></div>
+            <div class="rule-row"><div class="rule-icon">👆</div><div class="rule-text"><b>First:</b> Find the Daily Hidden Word</div></div>
+            <div class="rule-row"><div class="rule-icon">🐍</div><div class="rule-text"><b>Now:</b> Clear the grid!</div></div>
+            <div class="rule-row"><div class="rule-icon">🧱</div><div class="rule-text">Tap or swipe to select letters.</div></div>
+            <div class="rule-row"><div class="rule-icon">🎒</div><div class="rule-text">A double tap submits the word for validation.</div></div>
             <button class="game-btn btn-green" style="width:100%; margin-top:10px" onclick="startGame()">Start</button>
         </div>
     </div>
@@ -328,7 +328,7 @@
         let totalScore = 0, timer = 300, interval, gameStartTime = 0;
         let stats = { words: 0, longest: "", bestWord: "", bestScore: 0 };
         let hiddenFound = false, gameActive = false, isProcessing = false;
-        let hasWon = false; // NEW FLAG
+        let hasWon = false;
         let snakeIds = [], seed = 1, defTimeout = null;
 
         async function loadDict() {
@@ -447,7 +447,15 @@
             el.tile = tile; grid[r][c] = tile; 
             if(tile.snake) snakeIds.push(tile);
 
-            el.onpointerdown = (e) => { e.stopPropagation(); handleTap(e, tile); };
+            // MOBILE SWIPE LOGIC
+            el.onpointerdown = (e) => {
+                e.preventDefault();
+                if (e.target.hasPointerCapture(e.pointerId)) {
+                    e.target.releasePointerCapture(e.pointerId);
+                }
+                handleInputStart(e, tile);
+            };
+
             document.getElementById('game-container').appendChild(el);
         }
 
@@ -502,21 +510,34 @@
         }
 
         // --- PLAY ---
-        function handleTap(e, tile) {
+        function handleInputStart(e, tile) {
             e.stopPropagation();
             if(!gameActive || isProcessing) return;
+            
             hideDefinition();
-            if(selected.length > 0 && selected[selected.length-1] === tile) { submitWord(); return; }
+
+            if(selected.length > 0 && selected[selected.length-1] === tile) {
+                submitWord(); return;
+            }
+
             if(!selected.includes(tile)) {
                 if(selected.length > 0) {
                     const last = selected[selected.length-1];
                     const n = getNeighbors(last.r, last.c);
                     if(!n.some(xy => xy.r === tile.r && xy.c === tile.c)) clearSelection();
                 }
-                selected.push(tile); tile.el.classList.add('selected'); updateDisplay();
+                selected.push(tile);
+                tile.el.classList.add('selected');
+                updateDisplay();
+                
+                // Start drag logic
+                isDragging = true;
+                document.addEventListener('pointermove', handleMove);
+                document.addEventListener('pointerup', endDrag);
             } else {
                 if(selected.length > 1 && selected[selected.length-2] === tile) {
-                    selected.pop().el.classList.remove('selected'); updateDisplay();
+                    selected.pop().el.classList.remove('selected');
+                    updateDisplay();
                 }
             }
         }
@@ -527,7 +548,8 @@
 
         function handleDown(e) {
             if(!gameActive || isProcessing) return;
-            isDragging = true; handleMove(e);
+            isDragging = true;
+            handleMove(e);
             document.addEventListener('pointermove', handleMove);
             document.addEventListener('pointerup', endDrag);
         }
@@ -539,6 +561,7 @@
             let cell = target.closest('.cell');
             if(!cell || !cell.tileData) return;
             const tile = cell.tileData;
+            
             if(!selected.includes(tile)) {
                 if(selected.length > 0) {
                     const last = selected[selected.length - 1];
@@ -555,6 +578,14 @@
         }
 
         function endDrag() { isDragging = false; document.removeEventListener('pointermove', handleMove); document.removeEventListener('pointerup', endDrag); }
+
+        function updateDisplay() {
+            const txt = selected.map(t => t.l).join('').toUpperCase();
+            const pts = selected.reduce((a,b) => a+b.v, 0) * selected.length;
+            document.getElementById('word-display').innerText = txt ? `${txt} (${pts})` : "Ready";
+        }
+
+        function clearSelection() { selected.forEach(t => t.el.classList.remove('selected')); selected = []; updateDisplay(); }
 
         function submitWord() {
             if(!gameActive || isProcessing || selected.length < 2) return;
@@ -584,6 +615,7 @@
                 t.classList.add('visible');
                 document.getElementById('clue-bar').classList.add('solved');
                 document.getElementById('clue-text').innerText = "Daily Word Found!";
+                
                 triggerConfetti();
                 setTimeout(() => t.classList.remove('visible'), 3000);
             }
@@ -666,12 +698,6 @@
         }
 
         // --- HELPERS ---
-        function updateDisplay() {
-            const txt = selected.map(t => t.l).join('').toUpperCase();
-            const pts = selected.reduce((a,b) => a+b.v, 0) * selected.length;
-            document.getElementById('word-display').innerText = txt ? `${txt} (${pts})` : "Ready";
-        }
-        function clearSelection() { selected.forEach(t => t.el.classList.remove('selected')); selected = []; updateDisplay(); }
         function toggleSnake(show) { snakeIds.forEach(t => { if(t.el) show ? t.el.classList.add('snake-highlight') : t.el.classList.remove('snake-highlight'); }); }
         function updateBag() { 
             let count = grid.flat().filter(x => x !== null).length;
@@ -692,13 +718,13 @@
         function endGame(won) {
             if(!gameActive) return;
             gameActive = false; clearInterval(interval);
-            hasWon = won; // Store won state
+            hasWon = won;
             
             const el = 300 - timer;
             document.getElementById('go-title').innerText = won ? "VICTORY!" : "TIME UP";
             document.getElementById('go-title').style.color = won ? "#2ecc71" : "#e74c3c";
             
-            // Calculate and display Final Score (including bonus)
+            // Calculate Final Score correctly
             const finalScore = won ? (totalScore + 500) : totalScore;
             document.getElementById('go-score').innerText = finalScore;
             
@@ -721,11 +747,8 @@
         }
 
         function shareResult() {
-            // FIX: Correct Score & Text
             const finalScore = hasWon ? (totalScore + 500) : totalScore;
             const hiddenStatus = hiddenFound ? "Hidden Word Found!" : "Hidden Word Missed";
-            
-            // Spoiler check for best word display
             const bestDisplay = (stats.bestWord === SETTINGS.word) ? "?????" : stats.bestWord;
             const bestScoreText = stats.bestScore > 0 ? `(${stats.bestScore})` : "";
 
