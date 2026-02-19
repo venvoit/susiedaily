@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Word Crumble: Mobile</title>
+    <title>Word Crumble: Mobile Tutorial</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -77,11 +77,10 @@
         .bg-O { background: #3498db; color: white; }
         .bg-U { background: var(--t-purple); color: white; }
         
-        /* 1-Point Subtle Variations */
         .bg-L { background: var(--t-L); color: white; }
         .bg-N { background: var(--t-N); color: white; }
         .bg-R { background: var(--t-R); color: white; }
-        .bg-S { background: var(--t-S); color: #1e272e; } /* Darker text for contrast on silver */
+        .bg-S { background: var(--t-S); color: #1e272e; } 
         .bg-T { background: var(--t-T); color: white; }
 
         .bg-cons { background: var(--t-base); color: white; }
@@ -151,17 +150,18 @@
         }
 
         .controls { 
-            position: fixed; bottom: 20px; display: flex; gap: 10px; width: 90%; max-width: 450px; z-index: 200; 
+            position: fixed; bottom: 20px; display: flex; gap: 8px; width: 95%; max-width: 480px; z-index: 200; 
         }
         .game-btn { 
-            flex: 1; padding: 18px 0; border-radius: 14px; border: none; font-weight: 900; 
-            cursor: pointer; color: white; text-transform: uppercase; font-size: 0.9rem;
+            flex: 1; padding: 16px 0; border-radius: 12px; border: none; font-weight: 900; 
+            cursor: pointer; color: white; text-transform: uppercase; font-size: 0.85rem;
             box-shadow: 0 5px 0 rgba(0,0,0,0.3); transition: transform 0.1s;
         }
         .game-btn:active { transform: translateY(4px); box-shadow: none; }
         
         .btn-green { background: #05c46b; }
         .btn-red { background: var(--ui-red); }
+        .btn-blue { background: #3498db; }
         .btn-end { background: #d63031; }
         .btn-share { background: var(--ui-cyan); color: #2d3436; } 
 
@@ -180,7 +180,7 @@
             box-shadow: 0 20px 60px rgba(0,0,0,0.6); max-height: 95vh; overflow-y: auto;
         }
         
-        h2 { color: var(--ui-gold); margin: 0 0 20px 0; text-transform: uppercase; letter-spacing: 1px; }
+        h2 { color: var(--ui-gold); margin: 0 0 15px 0; text-transform: uppercase; letter-spacing: 1px; }
         
         .landing-btn {
             display: block; width: 100%; padding: 20px; margin-bottom: 15px;
@@ -199,9 +199,9 @@
         }
         label { display: block; text-align: left; font-size: 0.8rem; color: #808e9b; margin-bottom: 5px; text-transform: uppercase;}
 
-        .rule-row { display: flex; align-items: center; gap: 15px; margin-bottom: 12px; text-align: left; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 10px; }
-        .rule-icon { font-size: 1.5rem; }
-        .rule-text { font-size: 0.9rem; color: #d2dae2; }
+        .rule-row { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; text-align: left; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 12px; }
+        .rule-icon { font-size: 1.8rem; }
+        .rule-text { font-size: 0.95rem; color: #d2dae2; line-height: 1.4; }
 
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 20px 0; }
         .stat-box { background: rgba(0,0,0,0.3); padding: 10px; border-radius: 10px; }
@@ -221,6 +221,12 @@
             transition: background 0.2s; white-space: nowrap;
         }
         .store-btn:hover { background: #2c3e50; }
+
+        .gif-tutorial {
+            width: 100%; max-width: 200px; border-radius: 12px;
+            border: 2px solid var(--ui-gold); margin-bottom: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+        }
 
         canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 4000; }
         .snake-highlight { filter: sepia(1) hue-rotate(40deg) saturate(5) brightness(1.2) !important; z-index: 500 !important; }
@@ -263,8 +269,8 @@
             
             <label>Grid Layout</label>
             <select id="cfg-grid" class="setup-input">
+                <option value="straight" selected>Straight Grid</option>
                 <option value="offset">Bricklayer (Offset)</option>
-                <option value="straight">Straight Grid</option>
             </select>
 
             <div style="display: flex; gap: 10px;">
@@ -278,10 +284,16 @@
     <div id="modal-welcome" class="modal-overlay">
         <div class="modal-card">
             <h2>How to Play</h2>
-            <div class="rule-row"><div class="rule-icon">👆</div><div class="rule-text"><b>First:</b> Find the Daily Hidden Word</div></div>
-            <div class="rule-row"><div class="rule-icon">🐍</div><div class="rule-text"><b>Now:</b> Clear the grid!</div></div>
-            <div class="rule-row"><div class="rule-icon">🧱</div><div class="rule-text">Tap or swipe to select letters.</div></div>
-            <div class="rule-row"><div class="rule-icon">🎒</div><div class="rule-text">A double tap submits the word for validation.</div></div>
+            <img src="ScreenRecording_02-19-202611-24-19_1-ezgif.com-optimize.gif" class="gif-tutorial" alt="Gameplay Tutorial">
+            
+            <div class="rule-row">
+                <div class="rule-icon">🐍</div>
+                <div class="rule-text"><b>First:</b> Find the Daily Hidden Word.<br><b>Now:</b> Clear the grid!</div>
+            </div>
+            <div class="rule-row">
+                <div class="rule-icon">👆</div>
+                <div class="rule-text">Tap or swipe to select letters.<br>A <b>double tap</b> submits the word for validation.</div>
+            </div>
             <button class="game-btn btn-green" style="width:100%; margin-top:10px" onclick="startGame()">Start</button>
         </div>
     </div>
@@ -303,9 +315,10 @@
         <div id="game-container"></div>
 
         <div class="controls">
-            <button class="game-btn btn-end" onclick="confirmEndGame()">End Game</button>
-            <button class="game-btn btn-green" onclick="submitWord()" style="flex:1.5">Submit</button>
-            <button class="game-btn btn-blue" onmousedown="toggleSnake(true)" onmouseup="toggleSnake(false)" ontouchstart="toggleSnake(true)" ontouchend="toggleSnake(false)">👁️ Hint</button>
+            <button class="game-btn btn-end" onclick="confirmEndGame()" style="flex: 0.8;">End</button>
+            <button class="game-btn btn-blue" onmousedown="toggleSnake(true)" onmouseup="toggleSnake(false)" ontouchstart="toggleSnake(true)" ontouchend="toggleSnake(false)" style="flex: 0.8;">Hint</button>
+            <button class="game-btn btn-red" onclick="clearSelection()" style="max-width: 50px;">✕</button>
+            <button class="game-btn btn-green" onclick="submitWord()" style="flex:1.5;">Submit</button>
         </div>
     </div>
 
@@ -392,7 +405,7 @@
             SETTINGS = {
                 word: document.getElementById('cfg-word').value.toUpperCase(),
                 clue: document.getElementById('cfg-clue').value,
-                gridType: document.getElementById('cfg-grid') ? document.getElementById('cfg-grid').value : 'offset',
+                gridType: document.getElementById('cfg-grid') ? document.getElementById('cfg-grid').value : 'straight',
                 c: parseInt(document.getElementById('cfg-cols').value),
                 r: parseInt(document.getElementById('cfg-rows').value),
                 time: 300
@@ -468,7 +481,7 @@
             if("AEIOU".includes(data.l)) cls += ` bg-${data.l}`;
             else if(data.v >= 5) cls += " bg-epic";
             else if(data.v >= 3) cls += " bg-mid";
-            else if(["L","N","R","S","T"].includes(data.l)) cls += ` bg-${data.l}`; // Subtle 1-points
+            else if(["L","N","R","S","T"].includes(data.l)) cls += ` bg-${data.l}`; 
             else cls += " bg-cons";
             
             if(data.start) cls += " start-tile";
@@ -541,7 +554,6 @@
                     }
                 });
             } else {
-                // Straight 8-way grid
                 for(let dr = -1; dr <= 1; dr++) {
                     for(let dc = -1; dc <= 1; dc++) {
                         if(dr === 0 && dc === 0) continue;
@@ -766,7 +778,6 @@
         }
 
         // --- HELPERS ---
-        // ONLY HIGHLIGHT FIRST LETTER
         function toggleSnake(show) { 
             let firstLetter = snakeIds.find(t => t.start);
             if(firstLetter && firstLetter.el) {
