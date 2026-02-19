@@ -16,7 +16,15 @@
             --t-blue: #0fb9b1;   /* O */
             --t-purple: #a55eea; /* U */
             --t-white: #d2dae2;  /* I */
-            --t-base: #808e9b;   /* Consonants */
+            
+            /* Subtly different 1-pointers */
+            --t-L: #747d8c;
+            --t-N: #8395a7;
+            --t-R: #576574;
+            --t-S: #a4b0be;
+            --t-T: #636e72;
+            
+            --t-base: #808e9b;   /* Other Consonants */
             --t-epic: #1e272e;   /* High Score */
             
             /* UI COLORS */
@@ -37,7 +45,7 @@
             font-family: 'Nunito', sans-serif; 
             background: var(--bg-body); color: white; margin: 0; padding: 10px; 
             display: flex; flex-direction: column; align-items: center; 
-            min-height: 100vh; overflow-x: hidden; /* Allow vertical scroll for small screens */
+            min-height: 100vh; overflow-x: hidden; 
         }
 
         /* --- TILE DESIGN --- */
@@ -62,12 +70,20 @@
             font-size: 0.7rem; opacity: 0.8; font-weight: 900; 
         }
 
-        /* Colors */
+        /* Specific Colors */
         .bg-A { background: var(--t-red); color: white; }
         .bg-E { background: var(--t-yellow); color: #1e272e; }
         .bg-I { background: var(--t-white); color: #1e272e; }
         .bg-O { background: #3498db; color: white; }
         .bg-U { background: var(--t-purple); color: white; }
+        
+        /* 1-Point Subtle Variations */
+        .bg-L { background: var(--t-L); color: white; }
+        .bg-N { background: var(--t-N); color: white; }
+        .bg-R { background: var(--t-R); color: white; }
+        .bg-S { background: var(--t-S); color: #1e272e; } /* Darker text for contrast on silver */
+        .bg-T { background: var(--t-T); color: white; }
+
         .bg-cons { background: var(--t-base); color: white; }
         .bg-mid { background: #4bcffa; color: #1e272e; }
         .bg-epic { background: var(--t-epic); color: #dfe6e9; border: 1px solid #636e72; }
@@ -129,7 +145,6 @@
             margin-bottom: 10px; color: white; letter-spacing: 2px;
         }
 
-        /* CRITICAL FOR MOBILE: Prevents scrolling while swiping tiles */
         #game-container { 
             position: relative; margin: 0 auto; width: 100%; 
             transition: width 0.3s ease; touch-action: none; 
@@ -182,7 +197,7 @@
             padding: 12px; border-radius: 10px; font-weight: bold; width: 100%; margin-bottom: 15px; 
             font-size: 1rem;
         }
-        label { display: block; text-align: left; font-size: 0.8rem; color: #808e9b; margin-bottom: 5px; }
+        label { display: block; text-align: left; font-size: 0.8rem; color: #808e9b; margin-bottom: 5px; text-transform: uppercase;}
 
         .rule-row { display: flex; align-items: center; gap: 15px; margin-bottom: 12px; text-align: left; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 10px; }
         .rule-icon { font-size: 1.5rem; }
@@ -208,6 +223,7 @@
         .store-btn:hover { background: #2c3e50; }
 
         canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 4000; }
+        .snake-highlight { filter: sepia(1) hue-rotate(40deg) saturate(5) brightness(1.2) !important; z-index: 500 !important; }
         .invalid-shake { animation: shake 0.4s; color: var(--t-red) !important; }
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
         
@@ -244,6 +260,13 @@
             <input type="text" id="cfg-word" class="setup-input" value="MUSTANG" style="text-transform:uppercase">
             <label>Daily Clue</label>
             <input type="text" id="cfg-clue" class="setup-input" value="Neigh, Sally!">
+            
+            <label>Grid Layout</label>
+            <select id="cfg-grid" class="setup-input">
+                <option value="offset">Bricklayer (Offset)</option>
+                <option value="straight">Straight Grid</option>
+            </select>
+
             <div style="display: flex; gap: 10px;">
                 <div style="flex:1"><label>Cols</label><input type="number" id="cfg-cols" class="setup-input" value="6" min="4" max="8"></div>
                 <div style="flex:1"><label>Rows</label><input type="number" id="cfg-rows" class="setup-input" value="8" min="5" max="12"></div>
@@ -257,7 +280,7 @@
             <h2>How to Play</h2>
             <div class="rule-row"><div class="rule-icon">👆</div><div class="rule-text"><b>First:</b> Find the Daily Hidden Word</div></div>
             <div class="rule-row"><div class="rule-icon">🐍</div><div class="rule-text"><b>Now:</b> Clear the grid!</div></div>
-            <div class="rule-row"><div class="rule-icon">🧱</div><div class="rule-text">Tap or swipe to select letters</div></div>
+            <div class="rule-row"><div class="rule-icon">🧱</div><div class="rule-text">Tap or swipe to select letters.</div></div>
             <div class="rule-row"><div class="rule-icon">🎒</div><div class="rule-text">A double tap submits the word for validation.</div></div>
             <button class="game-btn btn-green" style="width:100%; margin-top:10px" onclick="startGame()">Start</button>
         </div>
@@ -282,7 +305,7 @@
         <div class="controls">
             <button class="game-btn btn-end" onclick="confirmEndGame()">End Game</button>
             <button class="game-btn btn-green" onclick="submitWord()" style="flex:1.5">Submit</button>
-            <button class="game-btn btn-red" onclick="clearSelection()">✕</button>
+            <button class="game-btn btn-blue" onmousedown="toggleSnake(true)" onmouseup="toggleSnake(false)" ontouchstart="toggleSnake(true)" ontouchend="toggleSnake(false)">👁️ Hint</button>
         </div>
     </div>
 
@@ -338,7 +361,7 @@
         let hiddenFound = false, gameActive = false, isProcessing = false;
         let hasWon = false;
         let snakeIds = [], seed = 1, defTimeout = null;
-        let isTouching = false; // Flag for mobile drag
+        let isTouching = false; 
 
         async function loadDict() {
             try {
@@ -369,6 +392,7 @@
             SETTINGS = {
                 word: document.getElementById('cfg-word').value.toUpperCase(),
                 clue: document.getElementById('cfg-clue').value,
+                gridType: document.getElementById('cfg-grid') ? document.getElementById('cfg-grid').value : 'offset',
                 c: parseInt(document.getElementById('cfg-cols').value),
                 r: parseInt(document.getElementById('cfg-rows').value),
                 time: 300
@@ -385,10 +409,10 @@
         function buildGrid() {
             const container = document.getElementById('game-container');
             const maxW = Math.min(window.innerWidth - 20, 460);
-            const tileW = Math.floor(maxW / (SETTINGS.c + 0.5));
+            const tileW = Math.floor(maxW / (SETTINGS.gridType === 'offset' ? (SETTINGS.c + 0.5) : SETTINGS.c));
             const tileH = Math.floor(tileW * 0.85);
 
-            container.style.width = ((SETTINGS.c * tileW) + (tileW/2)) + 'px';
+            container.style.width = (SETTINGS.gridType === 'offset') ? (((SETTINGS.c * tileW) + (tileW/2)) + 'px') : ((SETTINGS.c * tileW) + 'px');
             container.style.height = (SETTINGS.r * tileH) + 'px';
             container.innerHTML = '';
 
@@ -430,20 +454,23 @@
             gameStartTime = Date.now();
             interval = setInterval(tick, 1000);
             
-            // Global Input Listeners
             document.addEventListener('mouseup', endDrag);
             document.addEventListener('touchend', endDrag);
             document.addEventListener('mousedown', globalTap); 
             document.addEventListener('touchstart', globalTap);
         }
 
+        // --- GRID LOGIC ---
         function createTile(r, c, data, w, h) {
             const el = document.createElement('div');
             let cls = "cell";
+            
             if("AEIOU".includes(data.l)) cls += ` bg-${data.l}`;
             else if(data.v >= 5) cls += " bg-epic";
             else if(data.v >= 3) cls += " bg-mid";
+            else if(["L","N","R","S","T"].includes(data.l)) cls += ` bg-${data.l}`; // Subtle 1-points
             else cls += " bg-cons";
+            
             if(data.start) cls += " start-tile";
 
             el.className = cls;
@@ -451,14 +478,14 @@
             el.style.height = (h-4)+'px';
             el.innerHTML = `<span class="tile-letter">${data.l}</span><span class="tile-score">${data.v}</span>`;
 
-            let left = c * w; if(r % 2 !== 0) left += (w/2);
+            let left = c * w; 
+            if(SETTINGS.gridType === 'offset' && r % 2 !== 0) left += (w/2);
             el.style.left = left + 'px'; el.style.top = (r * h) + 'px';
 
             const tile = { el: el, r: r, c: c, l: data.l, v: data.v, snake: data.snake, start: data.start };
             el.tile = tile; grid[r][c] = tile; 
             if(tile.snake) snakeIds.push(tile);
 
-            // INPUT LISTENERS FOR BOTH MOUSE AND TOUCH
             el.addEventListener('mousedown', (e) => handleInputStart(e, tile));
             el.addEventListener('touchstart', (e) => handleInputStart(e, tile), {passive: false});
 
@@ -498,28 +525,40 @@
 
         function getNeighbors(r, c) {
             let n = [];
-            if(c > 0) n.push({r:r, c:c-1});
-            if(c < SETTINGS.c-1) n.push({r:r, c:c+1});
-            const odd = (r % 2 !== 0);
-            [r-1, r+1].forEach(nr => {
-                if(nr >= 0 && nr < SETTINGS.r) {
-                    if(odd) {
-                        if(c < SETTINGS.c) n.push({r:nr, c:c});
-                        if(c < SETTINGS.c-1) n.push({r:nr, c:c+1});
-                    } else {
-                        if(c > 0) n.push({r:nr, c:c-1});
-                        if(c < SETTINGS.c) n.push({r:nr, c:c});
+            if(SETTINGS.gridType === 'offset') {
+                if(c > 0) n.push({r:r, c:c-1});
+                if(c < SETTINGS.c-1) n.push({r:r, c:c+1});
+                const odd = (r % 2 !== 0);
+                [r-1, r+1].forEach(nr => {
+                    if(nr >= 0 && nr < SETTINGS.r) {
+                        if(odd) {
+                            if(c < SETTINGS.c) n.push({r:nr, c:c});
+                            if(c < SETTINGS.c-1) n.push({r:nr, c:c+1});
+                        } else {
+                            if(c > 0) n.push({r:nr, c:c-1});
+                            if(c < SETTINGS.c) n.push({r:nr, c:c});
+                        }
+                    }
+                });
+            } else {
+                // Straight 8-way grid
+                for(let dr = -1; dr <= 1; dr++) {
+                    for(let dc = -1; dc <= 1; dc++) {
+                        if(dr === 0 && dc === 0) continue;
+                        let nr = r + dr, nc = c + dc;
+                        if(nr >= 0 && nr < SETTINGS.r && nc >= 0 && nc < SETTINGS.c) {
+                            n.push({r: nr, c: nc});
+                        }
                     }
                 }
-            });
+            }
             return n;
         }
 
-        // --- UNIFIED INPUT HANDLER ---
+        // --- INPUT HANDLER ---
         function handleInputStart(e, tile) {
             if(!gameActive || isProcessing) return;
             
-            // Allow default for multi-touch gestures, but prevent single touch scrolling
             if (e.type === 'touchstart') {
                 if (e.touches.length === 1) e.preventDefault();
                 isTouching = true;
@@ -530,7 +569,6 @@
 
             hideDefinition();
 
-            // Logic: Double Tap / Selection
             if(selected.length > 0 && selected[selected.length-1] === tile) {
                 submitWord(); return;
             }
@@ -545,14 +583,12 @@
                 tile.el.classList.add('selected');
                 updateDisplay();
                 
-                // Add Move Listeners
                 if (e.type === 'touchstart') {
                     document.addEventListener('touchmove', handleTouchMove, {passive: false});
                 } else {
                     document.addEventListener('mousemove', handleMouseMove);
                 }
             } else {
-                // Backtrack
                 if(selected.length > 1 && selected[selected.length-2] === tile) {
                     selected.pop().el.classList.remove('selected');
                     updateDisplay();
@@ -568,7 +604,7 @@
 
         function handleTouchMove(e) {
             if(!isTouching) return;
-            e.preventDefault(); // Stop scroll
+            e.preventDefault(); 
             let touch = e.touches[0];
             let target = document.elementFromPoint(touch.clientX, touch.clientY);
             processMoveTarget(target);
@@ -694,7 +730,8 @@
                 for(let r=SETTINGS.r-1; r>=0; r--) {
                     if(grid[r][c]) {
                         let t = grid[r][c]; grid[r][c] = null; grid[write][c] = t; t.r = write;
-                        let left = c * w; if(write % 2 !== 0) left += (w/2);
+                        let left = c * w; 
+                        if(SETTINGS.gridType === 'offset' && write % 2 !== 0) left += (w/2);
                         t.el.style.top = (write * h) + 'px'; t.el.style.left = left + 'px';
                         write--;
                     }
@@ -713,7 +750,8 @@
                         for(let r=0; r<SETTINGS.r; r++) {
                             if(grid[r][oldC]) {
                                 let t = grid[r][oldC]; t.c = newC;
-                                let left = newC * w; if(t.r % 2 !== 0) left += (w/2);
+                                let left = newC * w; 
+                                if(SETTINGS.gridType === 'offset' && t.r % 2 !== 0) left += (w/2);
                                 t.el.style.left = left + 'px'; t.el.style.top = (t.r * h) + 'px';
                                 newGrid[r][newC] = t;
                             }
@@ -727,7 +765,15 @@
             }, 350);
         }
 
-        function toggleSnake(show) { snakeIds.forEach(t => { if(t.el) show ? t.el.classList.add('snake-highlight') : t.el.classList.remove('snake-highlight'); }); }
+        // --- HELPERS ---
+        // ONLY HIGHLIGHT FIRST LETTER
+        function toggleSnake(show) { 
+            let firstLetter = snakeIds.find(t => t.start);
+            if(firstLetter && firstLetter.el) {
+                show ? firstLetter.el.classList.add('snake-highlight') : firstLetter.el.classList.remove('snake-highlight'); 
+            }
+        }
+        
         function updateBag() { 
             let count = grid.flat().filter(x => x !== null).length;
             document.getElementById('bag-count').innerText = count; 
