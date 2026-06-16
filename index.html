@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bricklayer | Observer Puzzle</title>
+    <title>String 'em In'</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -104,14 +104,6 @@
         }
         .cell.removing { transform: scale(0.1) rotate(15deg); opacity: 0; transition: 0.3s ease-in; }
 
-        /* The Gold Pulse is now an Editorial Yellow highlight */
-        .start-tile {
-            border: 3px solid var(--brand-yellow) !important;
-            box-shadow: 0 0 0 1px var(--text-main) !important; /* Double border effect */
-            animation: pulseYellow 2s infinite;
-        }
-        @keyframes pulseYellow { 0% { border-color: var(--brand-yellow); } 50% { border-color: var(--text-main); } 100% { border-color: var(--brand-yellow); } }
-
         /* --- UI LAYOUT --- */
         #game-view { 
             display: none; flex-direction: column; align-items: center; 
@@ -153,13 +145,6 @@
         #def-word { display: block; color: var(--brand-navy); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; font-weight: 900;}
         #def-text { font-size: 1rem; font-weight: 400; line-height: 1.4; color: var(--text-main); font-family: 'Lora', serif;}
 
-        #clue-bar {
-            background: var(--brand-yellow); border: 1px solid var(--text-main);
-            color: var(--text-main); padding: 12px; width: 100%; text-align: center; 
-            font-size: 1rem; font-weight: 700; margin-bottom: 5px; transition: all 0.3s ease;
-        }
-        #clue-bar.solved { background: #e8f5e9; border-color: var(--brand-green); color: var(--brand-green); }
-
         #word-display { 
             height: 50px; font-size: 2.2rem; font-weight: 900; font-family: 'Lora', serif;
             display: flex; justify-content: center; align-items: center;
@@ -184,14 +169,13 @@
         .game-btn:active { transform: translateY(2px); }
         
         .btn-green { background: var(--brand-navy); color: white; border-color: var(--brand-navy); } /* Primary Action */
-        .btn-blue { background: #f6f6f6; } /* Hint */
         .btn-end { background: white; color: var(--brand-red); border-color: var(--brand-red); }
         .btn-red { background: white; color: var(--text-main); } /* Clear X */
 
         /* --- MODALS --- */
         .modal-overlay { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(255, 255, 255, 0.95); z-index: 9000; /* Light overlay for print vibe */
+            background: rgba(255, 255, 255, 0.95); z-index: 9000;
             display: flex; justify-content: center; align-items: center; padding: 15px;
             opacity: 0; pointer-events: none; transition: opacity 0.3s;
         }
@@ -256,17 +240,8 @@
         }
 
         canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 4000; }
-        .snake-highlight { filter: brightness(1.2); box-shadow: 0 0 0 2px var(--brand-navy) !important; z-index: 500 !important; }
         .invalid-shake { animation: shake 0.4s; color: var(--brand-red) !important; }
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
-        
-        #mid-game-toast {
-            position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0.8);
-            background: var(--text-main); color: white; padding: 20px 40px; border-radius: 4px;
-            font-weight: 700; font-size: 1.2rem; z-index: 5000; pointer-events: none;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15); opacity: 0; transition: 0.3s; text-align: center;
-        }
-        #mid-game-toast.visible { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 
         #clear-bonus-overlay { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); text-align: center; z-index: 4600; pointer-events: none; width: 100%; opacity: 0; transition: opacity 0.5s ease; }
         #clear-bonus-overlay.visible { opacity: 1; }
@@ -280,7 +255,7 @@
     <div id="landing-screen" class="modal-overlay visible">
         <div class="modal-card">
             <h1 style="font-family: 'Lora', serif; font-size: 2.8rem; margin-bottom: 5px; color:var(--text-main); line-height:1.1;">Bricklayer</h1>
-            <p style="color:var(--text-muted); margin-bottom: 30px; margin-top:0;">The Daily Word Puzzle</p>
+            <p style="color:var(--text-muted); margin-top: 0; margin-bottom: 30px; font-weight: 700;">The Daily Word Puzzle</p>
             <button class="landing-btn btn-primary" onclick="setupGame()">Play Daily Puzzle</button>
             <button class="landing-btn" onclick="showDev()">Dev / Config</button>
         </div>
@@ -289,10 +264,6 @@
     <div id="setup-screen" class="modal-overlay">
         <div class="modal-card">
             <h2>Config Settings</h2>
-            <label>Hidden Word</label>
-            <input type="text" id="cfg-word" class="setup-input" value="MUSTANG" style="text-transform:uppercase">
-            <label>Daily Clue</label>
-            <input type="text" id="cfg-clue" class="setup-input" value="Neigh, Sally!">
             
             <label>Grid Layout</label>
             <select id="cfg-grid" class="setup-input">
@@ -314,12 +285,12 @@
             <img src="ScreenRecording_02-19-202611-24-19_1-ezgif.com-optimize.gif" class="gif-tutorial" alt="Gameplay Tutorial">
             
             <div class="rule-row">
-                <div class="rule-icon">🐍</div>
-                <div class="rule-text"><b>First:</b> Find the Daily Hidden Word.<br><b>Now:</b> Clear the grid!</div>
+                <div class="rule-icon">🧱</div>
+                <div class="rule-text"><b>Clear the grid!</b> Find words to break the bricks and collapse the wall.</div>
             </div>
             <div class="rule-row">
                 <div class="rule-icon">👆</div>
-                <div class="rule-text">Tap or swipe to select letters.<br>A <b>double tap</b> submits the word for validation.</div>
+                <div class="rule-text"><b>Tap or swipe</b> to select letters.<br>A <b>double tap</b> submits the word for validation.</div>
             </div>
             <button class="landing-btn btn-primary" style="margin-top:10px; margin-bottom: 0;" onclick="startGame()">Start Game</button>
         </div>
@@ -337,14 +308,12 @@
             <div id="def-text">Definition goes here...</div>
         </div>
 
-        <div id="clue-bar">🕵️ <span id="clue-text">...</span></div>
         <div id="word-display">Ready</div>
         <div id="game-container"></div>
 
         <div class="controls">
             <button class="game-btn btn-end" onclick="confirmEndGame()" style="flex: 0.8;">End</button>
-            <button class="game-btn btn-blue" onmousedown="toggleSnake(true)" onmouseup="toggleSnake(false)" ontouchstart="toggleSnake(true)" ontouchend="toggleSnake(false)" style="flex: 0.8;">Hint</button>
-            <button class="game-btn btn-red" onclick="clearSelection()" style="max-width: 50px;">✕</button>
+            <button class="game-btn btn-red" onclick="clearSelection()" style="flex: 0.8;">Clear</button>
             <button class="game-btn btn-green" onclick="submitWord()" style="flex:1.5;">Submit</button>
         </div>
     </div>
@@ -362,7 +331,7 @@
             </div>
 
             <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-                <button class="game-btn" style="background:var(--brand-navy); color:white; border:none;" onclick="shareResult()">Share Result</button>
+                <button class="game-btn" style="background:var(--brand-navy); color:white; border:none;" onclick="shareResult()">Share Result 📤</button>
                 <button class="game-btn" onclick="location.reload()">Retry</button>
             </div>
 
@@ -377,7 +346,6 @@
         </div>
     </div>
 
-    <div id="mid-game-toast">Daily Word Found!</div>
     <div id="clear-bonus-overlay"><h1>BOARD<br>CLEARED!</h1><p style="color:var(--text-main); font-size:1.5rem; font-weight:700; margin-top:10px;">+500 BONUS</p></div>
     <canvas id="confetti-canvas"></canvas>
 
@@ -398,10 +366,10 @@
         let SETTINGS = {}, grid = [], deck = [], selected = [];
         let totalScore = 0, timer = 300, interval, gameStartTime = 0;
         let stats = { words: 0, longest: "", bestWord: "", bestScore: 0 };
-        let hiddenFound = false, gameActive = false, isProcessing = false;
+        let gameActive = false, isProcessing = false;
         let hasWon = false;
-        let snakeIds = [], seed = 1, defTimeout = null;
-        let isTouching = false; 
+        let seed = 1, defTimeout = null;
+        let isTouching = false, isDragging = false; 
 
         async function loadDict() {
             try {
@@ -419,6 +387,7 @@
             return ((t ^ t >>> 14) >>> 0) / 4294967296;
         }
 
+        // --- NAVIGATION ---
         function showDev() {
             document.getElementById('landing-screen').classList.remove('visible');
             document.getElementById('setup-screen').classList.add('visible');
@@ -428,15 +397,13 @@
             const today = new Date().toISOString().slice(0,10).replace(/-/g,'');
             seed = parseInt(today);
 
+            const gridSelect = document.getElementById('cfg-grid');
             SETTINGS = {
-                word: document.getElementById('cfg-word').value.toUpperCase(),
-                clue: document.getElementById('cfg-clue').value,
-                gridType: document.getElementById('cfg-grid') ? document.getElementById('cfg-grid').value : 'straight',
+                gridType: gridSelect ? gridSelect.value : 'straight',
                 c: parseInt(document.getElementById('cfg-cols').value),
                 r: parseInt(document.getElementById('cfg-rows').value),
                 time: 300
             };
-            dictionary.add(SETTINGS.word);
 
             document.getElementById('landing-screen').classList.remove('visible');
             document.getElementById('setup-screen').classList.remove('visible');
@@ -457,32 +424,24 @@
 
             grid = Array.from({length: SETTINGS.r}, () => Array(SETTINGS.c).fill(null));
             
-            const total = SETTINGS.c * SETTINGS.r;
-            const fill = Math.max(0, total - SETTINGS.word.length);
+            const totalTiles = SETTINGS.c * SETTINGS.r;
             
             deck = []; let pool = [];
             DEFAULT_DIST.forEach(x => { for(let i=0; i<x.c; i++) pool.push(x); });
             
-            for(let i=0; i<fill; i++) {
+            for(let i=0; i<totalTiles; i++) {
                 if(pool.length === 0) DEFAULT_DIST.forEach(x => { for(let k=0; k<x.c; k++) pool.push(x); });
                 const idx = Math.floor(seededRand() * pool.length);
                 deck.push(pool.splice(idx, 1)[0]);
             }
 
-            placeSnake();
-
             for(let r=0; r<SETTINGS.r; r++) {
                 for(let c=0; c<SETTINGS.c; c++) {
-                    let data = grid[r][c];
-                    if(!data) data = deck.pop() || {l:'?', v:0};
+                    let data = deck.pop() || {l:'?', v:0};
                     createTile(r, c, data, tileW, tileH);
                 }
             }
             
-            if(SETTINGS.clue) {
-                document.getElementById('clue-bar').style.display = "block";
-                document.getElementById('clue-text').innerText = SETTINGS.clue;
-            }
             updateBag();
         }
 
@@ -499,6 +458,7 @@
             document.addEventListener('touchstart', globalTap, {passive: false});
         }
 
+        // --- GRID LOGIC ---
         function createTile(r, c, data, w, h) {
             const el = document.createElement('div');
             let cls = "cell";
@@ -509,10 +469,8 @@
             else if(["L","N","R","S","T"].includes(data.l)) cls += ` bg-${data.l}`; 
             else cls += " bg-cons";
             
-            if(data.start) cls += " start-tile";
-
             el.className = cls;
-            el.style.width = (w-2)+'px'; /* Slightly tighter gap for editorial grid */
+            el.style.width = (w-2)+'px'; 
             el.style.height = (h-2)+'px';
             el.innerHTML = `<span class="tile-letter">${data.l}</span><span class="tile-score">${data.v}</span>`;
 
@@ -520,45 +478,13 @@
             if(SETTINGS.gridType === 'offset' && r % 2 !== 0) left += (w/2);
             el.style.left = left + 'px'; el.style.top = (r * h) + 'px';
 
-            const tile = { el: el, r: r, c: c, l: data.l, v: data.v, snake: data.snake, start: data.start };
+            const tile = { el: el, r: r, c: c, l: data.l, v: data.v };
             el.tile = tile; grid[r][c] = tile; 
-            if(tile.snake) snakeIds.push(tile);
 
             el.addEventListener('mousedown', (e) => handleInputStart(e, tile));
             el.addEventListener('touchstart', (e) => handleInputStart(e, tile), {passive: false});
 
             document.getElementById('game-container').appendChild(el);
-        }
-
-        function placeSnake() {
-            const letters = SETTINGS.word.split('');
-            let placed = false, tries = 0;
-            
-            let hash = 0;
-            for(let i=0; i<letters.length; i++) hash += letters[i].charCodeAt(0);
-            let jump = (hash * 13) % 1000;
-            for(let i=0; i<jump; i++) seededRand();
-
-            while(!placed && tries < 2000) {
-                for(let r=0; r<SETTINGS.r; r++) { for(let c=0; c<SETTINGS.c; c++) { if(grid[r][c]) grid[r][c] = null; } }
-                let r = Math.floor(seededRand() * SETTINGS.r);
-                let c = Math.floor(seededRand() * SETTINGS.c);
-                if(tryPath(r, c, 0, letters)) placed = true;
-                tries++;
-            }
-        }
-
-        function tryPath(r, c, idx, letters) {
-            if(idx >= letters.length) return true;
-            if(grid[r][c]) return false;
-            const l = letters[idx];
-            const v = DEFAULT_DIST.find(x => x.l === l)?.v || 1;
-            grid[r][c] = { l: l, v: v, snake: true, start: idx===0 };
-            if(idx === letters.length - 1) return true;
-            let neighbors = getNeighbors(r, c).filter(n => !grid[n.r][n.c]);
-            neighbors.sort(() => seededRand() - 0.5);
-            for(let n of neighbors) if(tryPath(n.r, n.c, idx+1, letters)) return true;
-            grid[r][c] = null; return false;
         }
 
         function getNeighbors(r, c) {
@@ -592,6 +518,7 @@
             return n;
         }
 
+        // --- INPUT HANDLER ---
         function handleInputStart(e, tile) {
             if(!gameActive || isProcessing) return;
             
@@ -711,16 +638,6 @@
             if(word.length > stats.longest.length) stats.longest = word;
             if(pts > stats.bestScore) { stats.bestScore = pts; stats.bestWord = word; }
 
-            if(!hiddenFound && word === SETTINGS.word) {
-                hiddenFound = true;
-                const t = document.getElementById('mid-game-toast');
-                t.classList.add('visible');
-                document.getElementById('clue-bar').classList.add('solved');
-                
-                triggerConfetti();
-                setTimeout(() => t.classList.remove('visible'), 2500);
-            }
-
             selected.forEach(t => { t.el.classList.add('removing'); grid[t.r][t.c] = null; });
             setTimeout(() => {
                 selected.forEach(t => t.el.remove());
@@ -799,13 +716,6 @@
                 else isProcessing = false;
             }, 350);
         }
-
-        function toggleSnake(show) { 
-            let firstLetter = snakeIds.find(t => t.start);
-            if(firstLetter && firstLetter.el) {
-                show ? firstLetter.el.classList.add('snake-highlight') : firstLetter.el.classList.remove('snake-highlight'); 
-            }
-        }
         
         function updateBag() { 
             let count = grid.flat().filter(x => x !== null).length;
@@ -830,4 +740,55 @@
             
             const el = 300 - timer;
             document.getElementById('go-title').innerText = won ? "VICTORY!" : "TIME UP";
-            document.getElementById('go-title').style
+            document.getElementById('go-title').style.color = won ? "var(--brand-green)" : "var(--brand-red)";
+            
+            const finalScore = won ? (totalScore + 500) : totalScore;
+            document.getElementById('go-score').innerText = finalScore;
+            
+            document.getElementById('go-count').innerText = stats.words;
+            document.getElementById('go-time').innerText = `${Math.floor(el/60)}:${(el%60).toString().padStart(2,'0')}`;
+            document.getElementById('go-best').innerText = stats.bestWord ? `${stats.bestWord} (${stats.bestScore})` : "-";
+            document.getElementById('go-long').innerText = stats.longest || "-";
+            
+            if(won) {
+                triggerConfetti();
+                document.getElementById('clear-bonus-overlay').classList.add('visible');
+                document.getElementById('clear-bonus-overlay').classList.add('animate-pop');
+                setTimeout(() => {
+                    document.getElementById('clear-bonus-overlay').classList.remove('visible');
+                    document.getElementById('modal-gameover').classList.add('visible');
+                }, 2000);
+            } else {
+                document.getElementById('modal-gameover').classList.add('visible');
+            }
+        }
+
+        function shareResult() {
+            const finalScore = hasWon ? (totalScore + 500) : totalScore;
+            const bestScoreText = stats.bestScore > 0 ? `(${stats.bestScore})` : "";
+            const stateIcon = hasWon ? "🏆 Board Cleared!" : "⏳ Out of Time";
+
+            const txt = `Word Crumble 🧱\n${stateIcon}\n⭐ ${finalScore}\n🔥 Best: ${stats.bestWord} ${bestScoreText}\n\nCan you beat my score?`;
+            
+            if (navigator.share) {
+                navigator.share({ title: 'Word Crumble', text: txt }).catch(console.error);
+            } else {
+                navigator.clipboard.writeText(txt);
+                alert("Copied!");
+            }
+        }
+
+        function triggerConfetti() {
+            const canvas = document.getElementById('confetti-canvas'); const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+            let p = Array.from({length: 150}, () => ({x: window.innerWidth/2, y: window.innerHeight/2, vx: (Math.random()-0.5)*20, vy: (Math.random()-0.5)*20, c: `hsl(${Math.random()*360},100%,50%)`, l: 1}));
+            function loop() {
+                ctx.clearRect(0,0,canvas.width,canvas.height);
+                p.forEach((x, i) => { x.x+=x.vx; x.y+=x.vy; x.vy+=0.5; x.l-=0.02; ctx.globalAlpha=Math.max(0,x.l); ctx.fillStyle=x.c; ctx.fillRect(x.x,x.y,8,8); if(x.l<=0)p.splice(i,1); });
+                if(p.length) requestAnimationFrame(loop);
+            }
+            loop();
+        }
+    </script>
+</body>
+</html>
