@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Bricklayer | Observer Puzzle</title>
     
-    <!-- Editorial Fonts (Lora for Serif headings, Inter for Sans-Serif body) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=Lora:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
@@ -66,7 +65,7 @@
             border: 1px solid rgba(0,0,0,0.15);
             box-shadow: 0 2px 0 rgba(0,0,0,0.1);
             transition: top 0.3s ease, left 0.3s ease, transform 0.1s;
-            touch-action: none; /* CRITICAL FOR MOBILE SWIPING */
+            touch-action: none; 
         }
         
         .cell.active-touch { transform: scale(0.95); box-shadow: none; margin-top: 2px; }
@@ -261,7 +260,6 @@
 </head>
 <body>
 
-    <!-- 1. LANDING SCREEN -->
     <div id="landing-screen" class="modal-overlay visible">
         <div class="modal-card">
             <h1 style="font-family: 'Lora', serif; font-size: 2.8rem; margin-bottom: 5px; color:var(--text-main); line-height:1.1;">Bricklayer</h1>
@@ -271,7 +269,6 @@
         </div>
     </div>
 
-    <!-- 2. SETUP SCREEN -->
     <div id="setup-screen" class="modal-overlay">
         <div class="modal-card">
             <h2>Config Settings</h2>
@@ -290,25 +287,23 @@
         </div>
     </div>
 
-    <!-- 3. RULES MODAL -->
     <div id="modal-welcome" class="modal-overlay">
         <div class="modal-card">
             <h2>How to Play</h2>
             <img src="ScreenRecording_02-19-202611-24-19_1-ezgif.com-optimize.gif" class="gif-tutorial" alt="Gameplay Tutorial">
             
             <div class="rule-row">
-                <div class="rule-icon">🐍</div>
-                <div class="rule-text"><b>First:</b> Find the Daily Hidden Word.<br><b>Now:</b> Clear the grid!</div>
+                <div class="rule-icon">🧱</div>
+                <div class="rule-text"><b>Clear the grid!</b> Find words to break the bricks and collapse the wall.</div>
             </div>
             <div class="rule-row">
                 <div class="rule-icon">👆</div>
-                <div class="rule-text">Tap or swipe to select letters.<br>A <b>double tap</b> submits the word for validation.</div>
+                <div class="rule-text"><b>Tap or swipe</b> to select letters.<br>A <b>double tap</b> submits the word for validation.</div>
             </div>
             <button class="landing-btn btn-primary" style="margin-top:10px; margin-bottom: 0;" onclick="startGame()">Start Game</button>
         </div>
     </div>
 
-    <!-- 4. GAME VIEW -->
     <div id="game-view">
         <div class="header-bar">
             <div class="stat-pill"><span class="stat-label">Time</span><span class="stat-val" id="timer-box">5:00</span></div>
@@ -326,13 +321,11 @@
 
         <div class="controls">
             <button class="game-btn btn-end" onclick="confirmEndGame()" style="flex: 0.8;">End</button>
-            <button class="game-btn btn-blue" onmousedown="toggleSnake(true)" onmouseup="toggleSnake(false)" ontouchstart="toggleSnake(true)" ontouchend="toggleSnake(false)" style="flex: 0.8;">Hint</button>
             <button class="game-btn btn-red" onclick="clearSelection()" style="max-width: 50px;">✕</button>
             <button class="game-btn btn-green" onclick="submitWord()" style="flex:1.5;">Submit</button>
         </div>
     </div>
 
-    <!-- 5. GAME OVER -->
     <div id="modal-gameover" class="modal-overlay">
         <div class="modal-card">
             <h2 id="go-title" style="font-size:2.2rem; margin-bottom:5px;">Game Over</h2>
@@ -384,7 +377,10 @@
         let gameActive = false, isProcessing = false;
         let hasWon = false;
         let seed = 1, defTimeout = null;
+        
+        // Touch/Drag flags
         let isDragging = false; 
+        let isTouching = false; 
 
         async function loadDict() {
             try {
@@ -402,7 +398,6 @@
             return ((t ^ t >>> 14) >>> 0) / 4294967296;
         }
 
-        // --- NAVIGATION ---
         function showDev() {
             document.getElementById('landing-screen').classList.remove('visible');
             document.getElementById('setup-screen').classList.add('visible');
@@ -467,54 +462,11 @@
             gameStartTime = Date.now();
             interval = setInterval(tick, 1000);
             
-            // Unified Mobile-Friendly Swipe Engine
-            const container = document.getElementById('game-container');
-            
-            container.addEventListener('pointerdown', (e) => {
-                if (!gameActive || isProcessing) return;
-                let cell = e.target.closest('.cell');
-                if (!cell) return;
-
-                isDragging = true;
-                
-                // Allow tracking dragging across elements without browser interventions
-                try { e.target.releasePointerCapture(e.pointerId); } catch(err) {}
-
-                hideDefinition();
-                
-                const tile = cell.tile;
-
-                // Double tap last tile to submit
-                if (selected.length > 0 && selected[selected.length - 1] === tile) {
-                    submitWord();
-                    isDragging = false;
-                    return;
-                }
-
-                handleTileInteraction(tile);
-            });
-
-            container.addEventListener('pointermove', (e) => {
-                if (!isDragging || !gameActive || isProcessing) return;
-                
-                let target = document.elementFromPoint(e.clientX, e.clientY);
-                if (!target) return;
-                
-                let cell = target.closest('.cell');
-                if (cell) {
-                    handleTileInteraction(cell.tile);
-                }
-            });
-
-            document.addEventListener('pointerup', () => { isDragging = false; });
-            document.addEventListener('pointercancel', () => { isDragging = false; });
-            
-            // Close definition popups when clicking outside
-            document.addEventListener('pointerdown', (e) => {
-                if(!e.target.closest('#def-modal') && !e.target.closest('.game-btn') && !e.target.closest('.cell')) {
-                    hideDefinition();
-                }
-            });
+            // Clean global listeners to stop lingering drag states
+            document.addEventListener('mouseup', endDrag);
+            document.addEventListener('touchend', endDrag);
+            document.addEventListener('mousedown', globalTap); 
+            document.addEventListener('touchstart', globalTap, {passive: false});
         }
 
         function createTile(r, c, data, w, h) {
@@ -526,7 +478,7 @@
             else if(data.v >= 3) cls += " bg-mid";
             else if(["L","N","R","S","T"].includes(data.l)) cls += ` bg-${data.l}`; 
             else cls += " bg-cons";
-            
+
             el.className = cls;
             el.style.width = (w-2)+'px'; 
             el.style.height = (h-2)+'px';
@@ -538,6 +490,10 @@
 
             const tile = { el: el, r: r, c: c, l: data.l, v: data.v };
             el.tile = tile; grid[r][c] = tile; 
+
+            // Using standard touch/mouse events for robust tracking
+            el.addEventListener('mousedown', (e) => handleInputStart(e, tile));
+            el.addEventListener('touchstart', (e) => handleInputStart(e, tile), {passive: false});
 
             document.getElementById('game-container').appendChild(el);
         }
@@ -573,26 +529,113 @@
             return n;
         }
 
-        // --- NEW INPUT HANDLER ---
-        function handleTileInteraction(tile) {
-            if (!selected.includes(tile)) {
-                if (selected.length > 0) {
-                    const last = selected[selected.length - 1];
-                    const neighbors = getNeighbors(last.r, last.c);
-                    if (!neighbors.some(n => n.r === tile.r && n.c === tile.c)) {
-                        clearSelection(); // Jumped far away, break link
-                    }
+        // --- NEW PRECISE INPUT HANDLER ---
+        function handleInputStart(e, tile) {
+            if(!gameActive || isProcessing) return;
+            
+            if (e.type === 'touchstart') {
+                // Only prevent default if it's a single finger touch inside the grid to prevent page scroll
+                if (e.touches.length === 1 && !e.target.closest('.controls')) e.preventDefault();
+                isTouching = true;
+            } else {
+                e.preventDefault();
+                isDragging = true;
+            }
+
+            hideDefinition();
+
+            // Double tap submission
+            if(selected.length > 0 && selected[selected.length-1] === tile) {
+                submitWord(); return;
+            }
+
+            if(!selected.includes(tile)) {
+                if(selected.length > 0) {
+                    const last = selected[selected.length-1];
+                    const n = getNeighbors(last.r, last.c);
+                    // If tap is completely disconnected from current word, reset selection
+                    if(!n.some(xy => xy.r === tile.r && xy.c === tile.c)) clearSelection();
                 }
                 selected.push(tile);
                 tile.el.classList.add('selected');
                 updateDisplay();
+                
+                // Add global move listeners
+                if (e.type === 'touchstart') {
+                    document.addEventListener('touchmove', handleTouchMove, {passive: false});
+                } else {
+                    document.addEventListener('mousemove', handleMouseMove);
+                }
             } else {
-                // Backtrack
-                if (selected.length > 1 && selected[selected.length - 2] === tile) {
-                    const popped = selected.pop();
-                    popped.el.classList.remove('selected');
+                // Check if backtracking
+                if(selected.length > 1 && selected[selected.length-2] === tile) {
+                    selected.pop().el.classList.remove('selected');
                     updateDisplay();
                 }
+            }
+        }
+
+        function handleMouseMove(e) {
+            if(!isDragging) return;
+            processMoveCoords(e.clientX, e.clientY);
+        }
+
+        function handleTouchMove(e) {
+            if(!isTouching) return;
+            if(!e.target.closest('.controls')) e.preventDefault(); 
+            let touch = e.touches[0];
+            processMoveCoords(touch.clientX, touch.clientY);
+        }
+
+        function processMoveCoords(x, y) {
+            let target = document.elementFromPoint(x, y);
+            if(!target) return;
+            let cell = target.closest('.cell');
+            if(!cell || !cell.tile) return;
+            
+            const rect = cell.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            const distance = Math.hypot(x - centerX, y - centerY);
+            
+            // MAGIC FIX: Finger must be near the center of the tile (40% radius).
+            // This prevents diagonal swipes from accidentally grabbing horizontal/vertical corners.
+            if (distance > rect.width * 0.40) return;
+
+            const tile = cell.tile;
+            
+            if(!selected.includes(tile)) {
+                if(selected.length > 0) {
+                    const last = selected[selected.length - 1];
+                    const isNeighbor = getNeighbors(last.r, last.c).some(n => n.r === tile.r && n.c === tile.c);
+                    
+                    if(!isNeighbor) {
+                        // FORGIVING FIX: Just ignore it if it's not a neighbor. Don't clear the whole word.
+                        return; 
+                    }
+                }
+                selected.push(tile); 
+                tile.el.classList.add('selected'); 
+                updateDisplay();
+            } else {
+                // If it is selected, see if we are backtracking
+                if(selected.length > 1 && selected[selected.length-2] === tile) {
+                    selected.pop().el.classList.remove('selected'); 
+                    updateDisplay(); 
+                }
+            }
+        }
+
+        function endDrag() { 
+            isDragging = false; 
+            isTouching = false;
+            document.removeEventListener('mousemove', handleMouseMove); 
+            document.removeEventListener('touchmove', handleTouchMove);
+        }
+
+        function globalTap(e) {
+            if(!e.target.closest('#def-modal') && !e.target.closest('.game-btn') && !e.target.closest('.cell')) {
+                hideDefinition();
             }
         }
 
@@ -709,6 +752,7 @@
             let count = grid.flat().filter(x => x !== null).length;
             document.getElementById('bag-count').innerText = count; 
         }
+        
         function tick() {
             timer--;
             const m = Math.floor(timer/60); const s = timer % 60;
